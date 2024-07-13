@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Music Site</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #121212;
+            color: #fff;
+        }
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 20px;
+            background-color: #181818;
+            align-items: center;
+        }
+        .navbar a {
+            color: #fff;
+            text-decoration: none;
+            margin-right: 20px;
+        }
+        .navbar .search-bar {
+            flex-grow: 1;
+            margin: 0 20px;
+            position: relative;
+        }
+        .navbar .search-bar input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 20px;
+            border: none;
+            background-color: #333;
+            color: #fff;
+            padding-left: 40px;
+        }
+        .navbar .search-bar .icon {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        .navbar .user-options {
+            display: flex;
+            align-items: center;
+        }
+        .navbar .user-options a {
+            margin-left: 20px;
+        }
+        .content {
+            display: flex;
+            flex-wrap: wrap;
+            padding: 20px;
+        }
+        .content h2 {
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        .section {
+            flex: 1;
+            margin-right: 20px;
+        }
+        .section:last-child {
+            margin-right: 0;
+        }
+        .section h3 {
+            margin-bottom: 10px;
+        }
+        .carousel {
+            display: flex;
+            overflow-x: auto;
+            scroll-snap-type: x proximity;
+            gap: 10px;
+        }
+        .carousel::-webkit-scrollbar {
+            display: none;
+        }
+        .carousel-item {
+            flex: 0 0 auto;
+            width: 150px;
+            height: 150px;
+            background-color: #333;
+            border-radius: 10px;
+            scroll-snap-align: center;
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .carousel-item:hover {
+            transform: scale(1.05);
+        }
+        .carousel-item img {
+            width: 100%;
+            height: 100%;
+            border-radius: 10px;
+        }
+        .carousel-item p {
+            position: absolute;
+            bottom: 5px;
+            left: 5px;
+            margin: 0;
+            font-size: 12px;
+            color: #fff;
+        }
+        .popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #181818;
+            padding: 30px;
+            border-radius: 10px;
+            z-index: 1000;
+            width: 80%;
+            max-width: 600px;
+        }
+        .popup .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            cursor: pointer;
+        }
+        .popup ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .popup ul li {
+            padding: 10px;
+            border-bottom: 1px solid #333;
+            cursor: pointer;
+        }
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+        }
+        .player {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: #181818;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 1000;
+        }
+        .player .song-info {
+            display: flex;
+            align-items: center;
+        }
+        .player .song-info img {
+            width: 50px;
+            height: 50px;
+            border-radius: 5px;
+            margin-right: 10px;
+        }
+        .player .controls {
+            display: flex;
+            align-items: center;
+        }
+        .player .controls button {
+            background: none;
+            border: none;
+            color: #fff;
+            margin: 0 10px;
+            cursor: pointer;
+        }
+        .player .progress {
+            flex-grow: 1;
+            margin: 0 20px;
+        }
+        .player .progress input {
+            width: 100%;
+            -webkit-appearance: none;
+            background-color: #555;
+            height: 5px;
+            border-radius: 5px;
+        }
+        .player .progress input::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 15px;
+            height: 15px;
+            background-color: #1db954;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        @media (max-width: 768px) {
+            .content {
+                flex-direction: column;
+            }
+            .section {
+                margin-right: 0;
+                margin-bottom: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <a href="#">For You</a>
+        <div class="search-bar">
+            <span class="icon">&#128269;</span>
+            <input type="text" placeholder="Search Album, Artist, Playlist" id="search-input">
+        </div>
+        <div class="user-options">
+            <a href="#">Settings</a>
+            <a href="#">PopStizzy03</a>
+        </div>
+    </div>
+    <div class="content">
+        <div class="section">
+            <h3>New releases</h3>
+            <div class="carousel" id="new-releases-carousel">
+                <!-- Albums will be added dynamically here -->
+            </div>
+        </div>
+        <div class="section">
+            <h3>Editor's picks</h3>
+            <div class="carousel" id="editors-picks-carousel">
+                <!-- Albums will be added dynamically here -->
+            </div>
+        </div>
+        <div class="section">
+            <h3>Artists</h3>
+            <div class="carousel" id="artists-carousel">
+                <!-- Artists will be added dynamically here -->
+            </div>
+        </div>
+    </div>
+    <div class="player">
+        <div class="song-info">
+            <img src="https://via.placeholder.com/50" alt="Playing Song">
+            <div>
+                <p>Song Title</p>
+                <p>Artist Name</p>
+            </div>
+        </div>
+        <div class="controls">
+            <button id="prev-btn"><i class="fas fa-backward"></i></button>
+            <button id="play-btn"><i class="fas fa-play"></i></button>
+            <button id="pause-btn" style="display: none;"><i class="fas fa-pause"></i></button>
+            <button id="next-btn"><i class="fas fa-forward"></i></button>
+        </div>
+        <div class="progress">
+            <input type="range" min="0" max="100" value="0" id="progress-bar">
+        </div>
+    </div>
+
+    <div class="popup" id="album-popup">
+        <span class="close-btn" id="close-popup"><i class="fas fa-times"></i></span>
+        <h3>Album Title</h3>
+        <ul id="album-songs-list">
+            <!-- Songs will be added dynamically here -->
+        </ul>
+    </div>
+    <div class="overlay" id="overlay"></div>
+
+    <script>
+        const newReleases = [
+            { title: "Pressure", artist: "Saheer", cover: "https://via.placeholder.com/150", songs: ["Song 1", "Song 2", "Song 3"] },
+            { title: "Joytime III", artist: "Marshmello", cover: "https://via.placeholder.com/150", songs: ["Song 1", "Song 2", "Song 3"] },
+            { title: "Mamacita", artist: "Jason Derulo", cover: "https://via.placeholder.com/150", songs: ["Song 1", "Song 2", "Song 3"] }
+        ];
+
+        const editorsPicks = [
+            { title: "Tropical Hits", cover: "https://via.placeholder.com/150", songs: ["Song 1", "Song 2", "Song 3"] },
+            { title: "Late Night Vibes", cover: "https://via.placeholder.com/150", songs: ["Song 1", "Song 2", "Song 3"] },
+            { title: "Jukebox Joint", cover: "https://via.placeholder.com/150", songs: ["Song 1", "Song 2", "Song 3"] }
+        ];
+
+        const artists = [
+            { name: "Artist 1", cover: "https://via.placeholder.com/150" },
+            { name: "Artist 2", cover: "https://via.placeholder.com/150" },
+            { name: "Artist 3", cover: "https://via.placeholder.com/150" }
+        ];
+
+        function createCarouselItem(item, type) {
+            const div = document.createElement('div');
+            div.classList.add('carousel-item');
+            div.innerHTML = `
+                <img src="${item.cover}" alt="${type === 'artist' ? item.name : item.title}">
+                <p>${type === 'artist' ? item.name : item.title}</p>
+            `;
+            return div;
+        }
+
+        function populateCarousel(carouselId, items, type) {
+            const carousel = document.getElementById(carouselId);
+            items.forEach(item => {
+                const carouselItem = createCarouselItem(item, type);
+                carouselItem.addEventListener('click', () => {
+                    if (type !== 'artist') {
+                        openPopup(item);
+                    }
+                });
+                carousel.appendChild(carouselItem);
+            });
+        }
+
+        function openPopup(album) {
+            const popup = document.getElementById('album-popup');
+            const overlay = document.getElementById('overlay');
+            const albumSongsList = document.getElementById('album-songs-list');
+            
+            document.querySelector('#album-popup h3').textContent = album.title;
+            albumSongsList.innerHTML = '';
+            album.songs.forEach(song => {
+                const li = document.createElement('li');
+                li.textContent = song;
+                li.addEventListener('click', () => {
+                    playSong(album, song);
+                });
+                albumSongsList.appendChild(li);
+            });
+
+            popup.style.display = 'block';
+            overlay.style.display = 'block';
+        }
+
+        function closePopup() {
+            const popup = document.getElementById('album-popup');
+            const overlay = document.getElementById('overlay');
+            popup.style.display = 'none';
+            overlay.style.display = 'none';
+        }
+
+        function playSong(album, song) {
+            const player = document.querySelector('.player');
+            const songInfo = player.querySelector('.song-info');
+            songInfo.querySelector('img').src = album.cover;
+            songInfo.querySelector('p:nth-child(2)').textContent = album.artist;
+            songInfo.querySelector('p:nth-child(3)').textContent = song;
+
+            document.getElementById('play-btn').style.display = 'none';
+            document.getElementById('pause-btn').style.display = 'block';
+
+            console.log(`Playing: ${song} from ${album.title}`);
+
+            // Update progress bar to match song duration
+            const progressBar = document.getElementById('progress-bar');
+            progressBar.max = 100; // assuming 100 is the full duration of the song for the demo
+            progressBar.value = 0;
+            let interval = setInterval(() => {
+                if (progressBar.value < progressBar.max) {
+                    progressBar.value++;
+                } else {
+                    clearInterval(interval);
+                }
+            }, 1000); // increment every second for demo
+        }
+
+        document.getElementById('close-popup').addEventListener('click', closePopup);
+        document.getElementById('overlay').addEventListener('click', closePopup);
+
+        populateCarousel('new-releases-carousel', newReleases, 'album');
+        populateCarousel('editors-picks-carousel', editorsPicks, 'album');
+        populateCarousel('artists-carousel', artists, 'artist');
+
+        // Search functionality
+        document.getElementById('search-input').addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            const allItems = document.querySelectorAll('.carousel-item');
+            
+            allItems.forEach(item => {
+                const title = item.querySelector('p').textContent.toLowerCase();
+                if (title.includes(query)) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+
+        // Music player controls
+        document.getElementById('play-btn').addEventListener('click', () => {
+            document.getElementById('play-btn').style.display = 'none';
+            document.getElementById('pause-btn').style.display = 'block';
+            console.log('Play button clicked');
+        });
+
+        document.getElementById('pause-btn').addEventListener('click', () => {
+            document.getElementById('pause-btn').style.display = 'none';
+            document.getElementById('play-btn').style.display = 'block';
+            console.log('Pause button clicked');
+        });
+
+        document.getElementById('prev-btn').addEventListener('click', () => {
+            console.log('Previous button clicked');
+        });
+
+        document.getElementById('next-btn').addEventListener('click', () => {
+            console.log('Next button clicked');
+        });
+
+        document.getElementById('progress-bar').addEventListener('input', (event) => {
+            console.log('Progress:', event.target.value);
+        });
+    </script>
+</body>
+</html>
+
